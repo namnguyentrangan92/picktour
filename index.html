@@ -1025,6 +1025,19 @@
 
         let confirmCallback = null;
 
+        // TÁCH RIÊNG PHIÊN ĐĂNG NHẬP CỤC BỘ (LOCAL SESSION) CHO TỪNG THIẾT BỊ
+        let localSession = { isLoggedIn: false, username: 'Khách', role: 'GUEST' };
+        try {
+            const savedSession = localStorage.getItem('pickleball_local_session');
+            if (savedSession) localSession = JSON.parse(savedSession);
+        } catch(e) {}
+
+        function saveLocalSession() {
+            try {
+                localStorage.setItem('pickleball_local_session', JSON.stringify(localSession));
+            } catch(e) {}
+        }
+
         window.setTournamentData = function(tournamentsState, activeId) {
             allTournamentsData = tournamentsState;
             if (activeId && allTournamentsData[activeId]) {
@@ -1131,18 +1144,39 @@
             }
         }
 
-        function switchTournament(tourId) {
-            if (!allTournamentsData[tourId]) return;
-            activeTournamentId = tourId;
-            tournament = allTournamentsData[tourId];
+        function renderHeaderTournamentSelector() {
+            const select = document.getElementById('header-tournament-select');
+            const titleEl = document.getElementById('header-tournament-title');
+            const dashTitle = document.getElementById('dash-tournament-name-display');
+            
+            if (select) {
+                select.innerHTML = '';
+                Object.keys(allTournamentsData).forEach(id => {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = allTournamentsData[id].name || id;
+                    if (id === activeTournamentId) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            }
 
+            if (titleEl && tournament) {
+                titleEl.innerText = tournament.name || 'Giải đấu của Công An Tỉnh';
+            }
+            if (dashTitle && tournament) {
+                dashTitle.innerText = tournament.name || 'Giải đấu của Công An Tỉnh';
+            }
+        }
+
+        function switchTournament(id) {
+            if (!allTournamentsData[id]) return;
+            activeTournamentId = id;
+            tournament = allTournamentsData[id];
             window.activeTournamentId = activeTournamentId;
             window.tournament = tournament;
 
-            renderHeaderTournamentSelector();
             renderAllViews();
-            triggerCloudSync();
-            showToast(`Đã chuyển sang giải đấu: ${tournament.name}`, "info");
+            showToast(`Đã chuyển sang giải: ${tournament.name}`, 'info');
         }
 
         function openAddTournamentModal() {
@@ -1160,14 +1194,16 @@
         function confirmCreateNewTournament() {
             const input = document.getElementById('new-tournament-name-input');
             if (!input) return;
-            const val = input.value.trim();
-            if (!val) return;
+            const name = input.value.trim();
+            if (!name) {
+                showToast("Vui lòng nhập tên giải đấu!", "error");
+                return;
+            }
 
-            const newId = `t_${Date.now()}`;
+            const newId = 't_' + new Date().getTime();
             allTournamentsData[newId] = {
                 id: newId,
-                name: val,
-                admin: { username: 'Admin', password: 'Nam @1992', isLoggedIn: tournament.admin.isLoggedIn, currentRole: tournament.admin.currentRole },
+                name: name,
                 users: [
                     { user: 'Admin', pass: 'Nam @1992', role: 'ADMIN' },
                     { user: 'subadmin', pass: '123456', role: 'SUB_ADMIN' },
@@ -1197,44 +1233,24 @@
 
             closeAddTournamentModal();
             switchTournament(newId);
-            showToast(`Đã tạo giải đấu mới "${val}"!`, "success");
-        }
-
-        function renderHeaderTournamentSelector() {
-            const selectEl = document.getElementById('header-tournament-select');
-            const titleEl = document.getElementById('header-tournament-title');
-            const dashTitleEl = document.getElementById('dash-tournament-name-display');
-
-            if (titleEl) titleEl.innerText = tournament.name || 'Giải đấu của Công An Tỉnh';
-            if (dashTitleEl) dashTitleEl.innerText = tournament.name || 'Giải đấu của Công An Tỉnh';
-
-            if (selectEl) {
-                selectEl.innerHTML = '';
-                Object.keys(allTournamentsData).forEach(tId => {
-                    const tour = allTournamentsData[tId];
-                    const opt = document.createElement('option');
-                    opt.value = tId;
-                    opt.textContent = tour.name;
-                    if (tId === activeTournamentId) opt.selected = true;
-                    selectEl.appendChild(opt);
-                });
-            }
+            triggerCloudSync();
+            showToast(`Đã tạo giải đấu mới: ${name}`, "success");
         }
 
         function saveTournamentNameFromAdmin() {
             const input = document.getElementById('admin-edit-tournament-name-input');
             if (!input) return;
-            const val = input.value.trim();
-            if (val) {
-                tournament.name = val;
+            const newName = input.value.trim();
+            if (newName) {
+                tournament.name = newName;
                 renderHeaderTournamentSelector();
                 triggerCloudSync();
-                showToast(`Đã đổi tên giải đấu thành "${val}"`, "success");
+                showToast("Đã cập nhật tên giải đấu!", "success");
             }
         }
 
         function switchTab(tabId) {
-            if (tabId === 'admin' && tournament.admin.currentRole === 'REFEREE') {
+            if (tabId === 'admin' && localSession.role === 'REFEREE') {
                 showToast("Tài khoản Trọng tài không được phép vào Trang Quản Trị!", "error");
                 switchTab('referee');
                 return;
@@ -1261,8 +1277,8 @@
             const roleDisplay = document.getElementById('header-role-display');
             const loginBtnText = document.getElementById('header-login-btn-text');
 
-            const currRole = tournament.admin.currentRole || 'GUEST';
-            const currUser = tournament.admin.isLoggedIn ? tournament.admin.username : 'Khách';
+            const currRole = localSession.role || 'GUEST';
+            const currUser = localSession.isLoggedIn ? localSession.username : 'Khách';
 
             if (userDisplay) userDisplay.innerText = currUser;
             if (roleDisplay) {
@@ -1275,7 +1291,7 @@
                 }`;
             }
             if (loginBtnText) {
-                loginBtnText.innerText = tournament.admin.isLoggedIn ? 'Trang Quản Trị' : 'Đăng Nhập';
+                loginBtnText.innerText = localSession.isLoggedIn ? 'Trang Quản Trị' : 'Đăng Nhập';
             }
         }
 
@@ -2892,9 +2908,10 @@
             const matchedUser = usersList.find(u => u.user.toLowerCase() === userIn.toLowerCase() && u.pass === passIn);
 
             if (matchedUser) {
-                tournament.admin.isLoggedIn = true;
-                tournament.admin.username = matchedUser.user;
-                tournament.admin.currentRole = matchedUser.role;
+                localSession.isLoggedIn = true;
+                localSession.username = matchedUser.user;
+                localSession.role = matchedUser.role;
+                saveLocalSession();
 
                 if (errEl) errEl.classList.add('hidden');
                 updateRoleHeaderUI();
@@ -2916,9 +2933,10 @@
         }
 
         function handleAdminLogout() {
-            tournament.admin.isLoggedIn = false;
-            tournament.admin.username = 'Guest';
-            tournament.admin.currentRole = 'GUEST';
+            localSession.isLoggedIn = false;
+            localSession.username = 'Khách';
+            localSession.role = 'GUEST';
+            saveLocalSession();
             updateRoleHeaderUI();
             renderAdminPortal();
             switchTab('dashboard');
@@ -2927,7 +2945,7 @@
 
         function handleCreateAccount(e) {
             e.preventDefault();
-            const role = tournament.admin.currentRole;
+            const role = localSession.role;
             if (role !== 'ADMIN') {
                 showToast("Chỉ Super Admin mới có quyền tạo tài khoản mới!", "error");
                 return;
@@ -2957,7 +2975,7 @@
         }
 
         function deleteAccount(username) {
-            const role = tournament.admin.currentRole;
+            const role = localSession.role;
             if (role !== 'ADMIN') {
                 showToast("Chỉ Super Admin mới có quyền xóa tài khoản!", "error");
                 return;
@@ -2979,7 +2997,7 @@
             const loginCard = document.getElementById('admin-login-card');
             const dashboardView = document.getElementById('admin-dashboard-view');
 
-            if (!tournament.admin.isLoggedIn) {
+            if (!localSession.isLoggedIn) {
                 if (loginCard) loginCard.classList.remove('hidden');
                 if (dashboardView) dashboardView.classList.add('hidden');
                 return;
@@ -2988,8 +3006,8 @@
             if (loginCard) loginCard.classList.add('hidden');
             if (dashboardView) dashboardView.classList.remove('hidden');
 
-            const currUser = tournament.admin.username;
-            const currRole = tournament.admin.currentRole || 'GUEST';
+            const currUser = localSession.username;
+            const currRole = localSession.role || 'GUEST';
 
             const nameEl = document.getElementById('admin-user-display-name');
             if (nameEl) nameEl.innerText = currUser;
