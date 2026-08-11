@@ -134,7 +134,6 @@
                     </div>
                 </div>
 
-                <!-- Tournament Switcher & Toolbar -->
                 <div class="flex items-center space-x-2">
                     <div class="relative">
                         <select id="header-tournament-select" onchange="switchTournament(this.value)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-pickle-400 font-bold text-xs focus:outline-none focus:border-pickle-500 cursor-pointer">
@@ -159,7 +158,6 @@
                 </div>
             </div>
 
-            <!-- Tab Navigation Menu -->
             <nav class="flex space-x-1 sm:space-x-2 border-t border-slate-800 py-2 overflow-x-auto text-xs sm:text-sm font-medium no-scrollbar">
                 <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
                     <i class="fa-solid fa-chart-pie"></i> Tổng Quan
@@ -916,7 +914,7 @@
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'pickleball-tournament-2026';
-        let firebaseApp, auth, db;
+        let firebaseApp, auth, db, authPromise;
 
         const firebaseConfig = {
             apiKey: "AIzaSyD73nENtm5QXsYSrY8FaBNMKeooWSTMQks",
@@ -938,7 +936,7 @@
                 db = getFirestore(firebaseApp);
 
                 const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                const authPromise = token ? signInWithCustomToken(auth, token) : signInAnonymously(auth);
+                authPromise = token ? signInWithCustomToken(auth, token) : signInAnonymously(auth);
 
                 authPromise.then((userCredential) => {
                     const user = userCredential.user;
@@ -955,7 +953,9 @@
                                     window.activeTournamentId = cloudData.activeId;
                                     window.tournament = window.allTournamentsData[cloudData.activeId];
                                 }
-                                window.renderAllViews();
+                                if (typeof window.renderAllViews === 'function') {
+                                    window.renderAllViews();
+                                }
                                 const statusEl = document.getElementById('cloud-sync-status');
                                 if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle text-emerald-400 text-[8px] mr-1"></i>Đã Đồng Bộ Cloud';
                             }
@@ -964,16 +964,23 @@
                 }).catch(err => console.error("Firebase auth error:", err));
 
                 window.saveToCloud = async function() {
-                    if (!auth || !auth.currentUser) return;
+                    if (!auth) return;
+                    if (!auth.currentUser && authPromise) {
+                        await authPromise;
+                    }
                     try {
                         const docRef = doc(db, 'artifacts', appId, 'public', 'data');
+                        const stateToSave = window.allTournamentsData || window.tournament;
+                        const activeIdToSave = window.activeTournamentId || 't_cong_an_tinh';
+                        
                         await setDoc(docRef, { 
-                            tournamentsState: window.allTournamentsData,
-                            activeId: window.activeTournamentId,
+                            tournamentsState: stateToSave,
+                            activeId: activeIdToSave,
                             updatedAt: new Date().toISOString() 
                         }, { merge: true });
                     } catch (e) {
                         console.error("Save to cloud failed:", e);
+                        throw e;
                     }
                 };
             } catch (err) {
@@ -1042,9 +1049,13 @@
         } catch (e) {}
 
         function triggerCloudSync() {
+            if (allTournamentsData && activeTournamentId && tournament) {
+                allTournamentsData[activeTournamentId] = tournament;
+            }
             window.allTournamentsData = allTournamentsData;
             window.activeTournamentId = activeTournamentId;
             window.tournament = tournament;
+
             try {
                 localStorage.setItem('pickleball_multi_tournaments_data', JSON.stringify({
                     allTournamentsData,
@@ -1054,10 +1065,12 @@
 
             const statusEl = document.getElementById('cloud-sync-status');
             if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-amber-400 text-[8px] mr-1"></i>Đang Lưu Cloud...';
+            
             if (typeof window.saveToCloud === 'function') {
                 window.saveToCloud().then(() => {
                     if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle text-emerald-400 text-[8px] mr-1"></i>Đã Đồng Bộ Cloud';
-                }).catch(() => {
+                }).catch((err) => {
+                    console.error("Cloud sync error:", err);
                     if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle text-red-400 text-[8px] mr-1"></i>Lỗi Cloud';
                 });
             }
@@ -2520,6 +2533,9 @@
                         }
                     });
 
+                    allTournamentsData[activeTournamentId] = tournament;
+                    window.tournament = tournament;
+
                     renderAllViews();
                     triggerCloudSync();
                     showToast(`Đã nhập thành công ${importedMatchesCount} trận đấu vào Lịch, Bảng đấu, VĐV & đồng bộ Cloud!`, "success");
@@ -2698,7 +2714,7 @@
 
             const courtId = tournament.activeRefereeCourt;
             if (!courtId) {
-                container.innerHTML = `<div class="text-slate-500 text-sm font-bold py-6">Vui lòng chọn Sân đấu ở góc trên để bắt đầu điều khiển tỷ số trực tiếp.</div>`;
+                container.innerHTML = `<div class="text-slate-500 text-sm font-bold py-6">Vui lòng chọn Sân đấu để bắt đầu điều khiển tỷ số trực tiếp.</div>`;
                 return;
             }
 
@@ -3448,18 +3464,18 @@
 
                     let added = 0;
                     json.forEach(row => {
-                        const name = row["Tên VĐV / Đội"] || row["Tên VĐV"] || row["Name"];
+                        const name = row["Tên VĐV / Đội"] || row["Tên VĐV"] || row["Name"] || row["Mã VĐV"];
                         if (name) {
-                            const cat = row["Nội Dung Thi Đấu"] || row["Nội dung"] || tournament.categories[0];
+                            const cat = row["Nội Dung Thi Đấu"] || row["Nội dung"] || row["Nội Dung"] || tournament.categories[0];
                             if (!tournament.categories.includes(cat)) tournament.categories.push(cat);
 
                             tournament.teams.push({
-                                id: `T${String(tournament.teams.length + 1).padStart(2, '0')}`,
+                                id: row["Mã VĐV"] || `T${String(tournament.teams.length + 1).padStart(2, '0')}`,
                                 name: String(name).trim(),
-                                player1: String(name).split('&')[0] || name,
-                                gender1: row["Giới Tính 1"] || 'Nam',
-                                club1: row["Đơn Vị 1"] || 'Tự do',
-                                player2: String(name).split('&')[1] || '',
+                                player1: String(name).split('&')[0] ? String(name).split('&')[0].trim() : String(name).trim(),
+                                gender1: row["Giới Tính 1"] || row["Giới Tính"] || 'Nam',
+                                club1: row["Đơn Vị 1"] || row["Đơn Vị / CLB"] || row["Đơn Vị"] || 'Tự do',
+                                player2: String(name).split('&')[1] ? String(name).split('&')[1].trim() : '',
                                 gender2: row["Giới Tính 2"] || 'Nam',
                                 club2: row["Đơn Vị 2"] || '',
                                 category: cat
@@ -3468,13 +3484,17 @@
                         }
                     });
 
+                    allTournamentsData[activeTournamentId] = tournament;
+                    window.tournament = tournament;
+
                     updateCategoryDropdownOptions();
                     renderPlayersList();
                     renderDashboard();
                     renderAdminPortal();
                     triggerCloudSync();
-                    showToast(`Đã nhập thành công ${added} VĐV từ Excel!`, "success");
+                    showToast(`Đã nhập thành công ${added} VĐV từ Excel và đồng bộ Cloud!`, "success");
                 } catch (err) {
+                    console.error(err);
                     showToast("Có lỗi khi đọc file Excel!", "error");
                 }
             };
