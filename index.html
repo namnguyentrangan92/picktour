@@ -135,8 +135,8 @@
                 </div>
 
                 <div class="flex items-center space-x-2">
-                    <div class="relative">
-                        <select id="header-tournament-select" onchange="switchTournament(this.value)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-pickle-400 font-bold text-xs focus:outline-none focus:border-pickle-500 cursor-pointer">
+                    <div class="relative hidden sm:block">
+                        <select id="header-tournament-select" onchange="switchTournament(this.value)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-pickle-400 font-bold text-xs focus:outline-none focus:border-pickle-500 cursor-pointer max-w-[150px] truncate">
                         </select>
                     </div>
 
@@ -169,7 +169,7 @@
                     <i class="fa-solid fa-table-cells-large"></i> Vòng Bảng
                 </button>
                 <button onclick="switchTab('bracket')" id="tab-bracket" class="tab-btn px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
-                    <i class="fa-solid fa-sitemap"></i> Sơ Đồ Loại Trực Tiếp
+                    <i class="fa-solid fa-sitemap"></i> Loại Trực Tiếp
                 </button>
                 <button onclick="switchTab('schedule')" id="tab-schedule" class="tab-btn px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
                     <i class="fa-solid fa-calendar-days"></i> Lịch Trận & Tỷ Số
@@ -199,12 +199,12 @@
                         <h2 id="dash-tournament-name-display" class="text-2xl sm:text-4xl font-black tracking-tight text-white">Giải đấu của Công An Tỉnh</h2>
                         <p class="text-slate-300 text-sm max-w-2xl">Điều hành giải thi đấu chuyên nghiệp: Tự động chia bảng, xếp lịch Ca Sáng / Ca Chiều (hoặc <b>Đánh Thông Trưa</b>), quy tắc nghiêm ngặt <b>Nghỉ đấu (Không đấu &gt; 2 trận liên tiếp)</b>, Bảng Trọng Tài điều khiển trực tiếp & Đồng bộ Firebase Cloud.</p>
                     </div>
-                    <div class="flex gap-3">
+                    <div class="flex flex-wrap gap-3">
                         <button onclick="switchTab('referee')" class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm transition shadow-lg shadow-emerald-600/30 flex items-center gap-2">
-                            <i class="fa-solid fa-clipboard-user"></i> Mở Bảng Trọng Tài
+                            <i class="fa-solid fa-clipboard-user"></i> Bảng Trọng Tài
                         </button>
                         <button onclick="switchTab('schedule')" class="px-5 py-3 rounded-2xl bg-pickle-600 hover:bg-pickle-500 text-white font-black text-sm transition shadow-lg shadow-pickle-600/30 flex items-center gap-2">
-                            <i class="fa-solid fa-play"></i> Xem Lịch Thi Đấu
+                            <i class="fa-solid fa-play"></i> Lịch Thi Đấu
                         </button>
                     </div>
                 </div>
@@ -342,7 +342,7 @@
                         <label for="group-size-select" class="text-xs font-bold text-slate-300 pl-2 whitespace-nowrap"><i class="fa-solid fa-sliders text-pickle-400 mr-1"></i>Chế độ chia bảng:</label>
                         <select id="group-size-select" onchange="autoGenerateGroups()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-100 text-xs font-bold focus:outline-none focus:border-pickle-500 border border-slate-700 shadow-xs">
                             <option value="auto">⚡ Tự động tối ưu</option>
-                            <option value="1_group">🏆 1 Bảng duy nhất (Đánh vòng tròn toàn bộ VĐV)</option>
+                            <option value="1_group">🏆 1 Bảng duy nhất</option>
                             <option value="3_per_group">3 Đội / Bảng</option>
                             <option value="4_per_group" selected>4 Đội / Bảng</option>
                             <option value="5_per_group">5 Đội / Bảng</option>
@@ -360,9 +360,7 @@
                 </div>
             </div>
 
-            <!-- Category Filter Pills -->
             <div id="group-category-pills" class="flex items-center gap-2 overflow-x-auto pb-1 text-xs"></div>
-
             <div id="groups-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
         </section>
 
@@ -422,10 +420,9 @@
                                 <input type="time" id="sched-afternoon-start" value="13:30" class="bg-slate-800 border border-slate-700 rounded px-1.5 py-1 text-white font-mono font-bold focus:outline-none focus:border-pickle-500">
                             </div>
 
-                            <!-- Continuous Play Option Toggle -->
                             <label class="flex items-center gap-1.5 cursor-pointer bg-amber-500/10 text-amber-300 px-2.5 py-1 rounded-lg border border-amber-500/30 text-xs font-bold transition hover:bg-amber-500/20" title="Tự động xếp lịch liên tục xuyên trưa không nghỉ gián đoạn">
                                 <input type="checkbox" id="sched-continuous-play" onchange="toggleContinuousPlay(this.checked)" class="accent-pickle-500 rounded cursor-pointer">
-                                <span>⚡ Đánh Thông Trưa (Không Nghỉ)</span>
+                                <span>⚡ Đánh Thông Trưa</span>
                             </label>
 
                             <button onclick="applyGlobalTimesToCourts()" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-pickle-400 border border-slate-700" title="Áp dụng giờ Sáng/Chiều cho toàn bộ sân">Đồng bộ tất cả sân</button>
@@ -447,13 +444,12 @@
                     </div>
                 </div>
 
-                <!-- Category Court Allocation Matrix -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-bold uppercase text-pickle-400 tracking-wider flex items-center gap-1.5">
                             <i class="fa-solid fa-map-location-dot"></i> Phân Bổ Sân Đấu Cho Từng Nội Dung Thi Đấu
                         </h3>
-                        <span class="text-[11px] text-slate-400">Tích chọn các sân được phép dùng cho từng nội dung để tránh trùng lịch</span>
+                        <span class="text-[11px] text-slate-400">Tích chọn sân được phép dùng cho từng nội dung để tránh trùng lịch</span>
                     </div>
                     <div id="category-court-allocation-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1"></div>
                 </div>
@@ -471,7 +467,7 @@
                     </button>
                     <div class="bg-slate-900 p-1 rounded-xl border border-slate-700 flex items-center gap-1 text-xs font-bold">
                         <button id="view-mode-matrix-btn" onclick="setScheduleViewMode('matrix')" class="px-3 py-1.5 rounded-lg bg-pickle-600 text-white transition">
-                            <i class="fa-solid fa-border-all mr-1"></i> Lưới Theo Sân
+                            <i class="fa-solid fa-border-all mr-1"></i> Lưới Sân
                         </button>
                         <button id="view-mode-list-btn" onclick="setScheduleViewMode('list')" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">
                             <i class="fa-solid fa-list mr-1"></i> Danh Sách
@@ -660,7 +656,6 @@
                         </h3>
                         <span class="text-xs text-slate-400">Tổng VĐV: <b id="admin-total-teams-count" class="text-white">0</b></span>
                     </div>
-
                     <div class="max-h-[350px] overflow-y-auto space-y-2 pr-1" id="admin-players-full-edit-list"></div>
                 </div>
 
@@ -691,13 +686,13 @@
                                 </div>
                                 <div>
                                     <label class="block text-slate-300 font-bold mb-1">Mật Khẩu *</label>
-                                    <input type="text" id="acc-input-pass" required placeholder="Mật khẩu" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                                    <input type="password" id="acc-input-pass" required placeholder="Mật khẩu" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
                                 </div>
                                 <div>
                                     <label class="block text-slate-300 font-bold mb-1">Phân Quyền *</label>
                                     <select id="acc-input-role" required class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold focus:outline-none focus:border-amber-400">
                                         <option value="REFEREE">Trọng Tài (Chỉ bắt điểm)</option>
-                                        <option value="SUB_ADMIN">Sub-Admin (Chỉnh VĐV & Nội dung)</option>
+                                        <option value="SUB_ADMIN">Sub-Admin (Chỉnh sửa hạn chế)</option>
                                         <option value="ADMIN">Super Admin (Toàn quyền)</option>
                                     </select>
                                 </div>
@@ -830,7 +825,7 @@
                 <i class="fa-solid fa-trophy text-pickle-400"></i> Thêm Giải Đấu Mới
             </h4>
             <p class="text-xs text-slate-300">Nhập tên Giải đấu mới để tạo phân vùng dữ liệu biệt lập:</p>
-            <input type="text" id="new-tournament-name-input" placeholder="Ví dụ: Giải Pickleball Công An Tỉnh Mở Rộng..." class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-pickle-500">
+            <input type="text" id="new-tournament-name-input" placeholder="Ví dụ: Giải Pickleball Mở Rộng..." class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-pickle-500">
             <div class="flex gap-2 pt-2">
                 <button onclick="closeAddTournamentModal()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition">Hủy</button>
                 <button onclick="confirmCreateNewTournament()" class="flex-1 py-2 rounded-xl bg-pickle-600 hover:bg-pickle-500 text-white text-xs font-bold transition">Tạo Giải Mới</button>
@@ -914,7 +909,7 @@
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'pickleball-tournament-2026';
-        let firebaseApp, auth, db, authPromise;
+        let firebaseApp, auth, db;
 
         const firebaseConfig = {
             apiKey: "AIzaSyD73nENtm5QXsYSrY8FaBNMKeooWSTMQks",
@@ -936,9 +931,9 @@
                 db = getFirestore(firebaseApp);
 
                 const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                authPromise = token ? signInWithCustomToken(auth, token) : signInAnonymously(auth);
+                window.authPromise = token ? signInWithCustomToken(auth, token) : signInAnonymously(auth);
 
-                authPromise.then((userCredential) => {
+                window.authPromise.then((userCredential) => {
                     const user = userCredential.user;
                     if (!user) return;
 
@@ -948,10 +943,8 @@
                         if (docSnap.exists()) {
                             const cloudData = docSnap.data();
                             if (cloudData && cloudData.tournamentsState) {
-                                window.allTournamentsData = cloudData.tournamentsState;
-                                if (cloudData.activeId && window.allTournamentsData[cloudData.activeId]) {
-                                    window.activeTournamentId = cloudData.activeId;
-                                    window.tournament = window.allTournamentsData[cloudData.activeId];
+                                if (typeof window.setTournamentData === 'function') {
+                                    window.setTournamentData(cloudData.tournamentsState, cloudData.activeId);
                                 }
                                 if (typeof window.renderAllViews === 'function') {
                                     window.renderAllViews();
@@ -965,12 +958,12 @@
 
                 window.saveToCloud = async function() {
                     if (!auth) return;
-                    if (!auth.currentUser && authPromise) {
-                        await authPromise;
+                    if (!auth.currentUser && window.authPromise) {
+                        await window.authPromise;
                     }
                     try {
                         const docRef = doc(db, 'artifacts', appId, 'public', 'data');
-                        const stateToSave = window.allTournamentsData || window.tournament;
+                        const stateToSave = window.allTournamentsData;
                         const activeIdToSave = window.activeTournamentId || 't_cong_an_tinh';
                         
                         await setDoc(docRef, { 
@@ -990,7 +983,6 @@
     </script>
 
     <script>
-        // Multi-Tournament Master State
         let allTournamentsData = {
             't_cong_an_tinh': {
                 id: 't_cong_an_tinh',
@@ -1032,6 +1024,20 @@
         window.tournament = tournament;
 
         let confirmCallback = null;
+
+        window.setTournamentData = function(tournamentsState, activeId) {
+            allTournamentsData = tournamentsState;
+            if (activeId && allTournamentsData[activeId]) {
+                activeTournamentId = activeId;
+            } else {
+                activeTournamentId = Object.keys(allTournamentsData)[0];
+            }
+            tournament = allTournamentsData[activeTournamentId];
+            
+            window.allTournamentsData = allTournamentsData;
+            window.activeTournamentId = activeTournamentId;
+            window.tournament = tournament;
+        };
 
         try {
             const cached = localStorage.getItem('pickleball_multi_tournaments_data');
@@ -2158,46 +2164,6 @@
             container.innerHTML = fullTreeHtml;
         }
 
-        function toggleCategoryCourt(category, courtId, isChecked) {
-            if (!tournament.categoryCourts[category]) {
-                tournament.categoryCourts[category] = [];
-            }
-            if (isChecked) {
-                if (!tournament.categoryCourts[category].includes(courtId)) {
-                    tournament.categoryCourts[category].push(courtId);
-                }
-            } else {
-                tournament.categoryCourts[category] = tournament.categoryCourts[category].filter(c => c !== courtId);
-            }
-            renderCategoryCourtAllocation();
-            triggerCloudSync();
-            showToast(`Đã cập nhật phân bổ sân cho nội dung "${category}"`, "info");
-        }
-
-        function assignCourt(matchId, courtId) {
-            const match = tournament.matches.find(m => m.id === matchId);
-            if (!match) return;
-
-            if (match.court) {
-                const prevCourt = tournament.courts.find(c => c.id === match.court);
-                if (prevCourt) prevCourt.status = 'Rảnh';
-            }
-
-            match.court = courtId || null;
-            if (courtId) {
-                match.status = 'IN_PROGRESS';
-                const courtObj = tournament.courts.find(c => c.id === courtId);
-                if (courtObj) courtObj.status = 'Đang đấu';
-            } else {
-                match.status = 'PENDING';
-            }
-
-            renderSchedule();
-            renderDashboard();
-            renderRefereePortal();
-            triggerCloudSync();
-        }
-
         function renderCategoryCourtAllocation() {
             const container = document.getElementById('category-court-allocation-container');
             if (!container) return;
@@ -2226,6 +2192,23 @@
                 `;
             });
             container.innerHTML = html;
+        }
+
+        function toggleCategoryCourt(category, courtId, isChecked) {
+            if (!tournament.categoryCourts) tournament.categoryCourts = {};
+            if (!tournament.categoryCourts[category]) {
+                tournament.categoryCourts[category] = [];
+            }
+            if (isChecked) {
+                if (!tournament.categoryCourts[category].includes(courtId)) {
+                    tournament.categoryCourts[category].push(courtId);
+                }
+            } else {
+                tournament.categoryCourts[category] = tournament.categoryCourts[category].filter(c => c !== courtId);
+            }
+            renderCategoryCourtAllocation();
+            triggerCloudSync();
+            showToast(`Đã cập nhật phân bổ sân cho nội dung "${category}"`, "info");
         }
 
         function setScheduleViewMode(mode) {
@@ -2372,180 +2355,53 @@
             }
         }
 
-        function exportScheduleToExcel() {
-            if (typeof XLSX === 'undefined') {
-                showToast("Thư viện SheetJS chưa tải xong!", "error");
-                return;
+        function assignCourt(matchId, courtId) {
+            const match = tournament.matches.find(m => m.id === matchId);
+            if (!match) return;
+
+            if (match.court) {
+                const prevCourt = tournament.courts.find(c => c.id === match.court);
+                if (prevCourt) prevCourt.status = 'Rảnh';
             }
 
-            let stageFilter = document.getElementById('schedule-stage-filter') ? document.getElementById('schedule-stage-filter').value : 'ALL';
-            let catFilter = tournament.activeCategorySchedule || 'ALL';
-
-            let list = tournament.matches.filter(m => {
-                let matchesStage = stageFilter === 'ALL' || m.stage === stageFilter;
-                let matchesCat = catFilter === 'ALL' || m.category === catFilter;
-                return matchesStage && matchesCat;
-            });
-
-            if (list.length === 0) {
-                showToast("Không có trận đấu nào trong lịch để xuất file!", "error");
-                return;
+            match.court = courtId || null;
+            if (courtId) {
+                match.status = 'IN_PROGRESS';
+                const courtObj = tournament.courts.find(c => c.id === courtId);
+                if (courtObj) courtObj.status = 'Đang đấu';
+            } else {
+                match.status = 'PENDING';
             }
 
-            const wb = XLSX.utils.book_new();
-            const schedData = list.map((m, idx) => {
-                const t1 = tournament.teams.find(t => t.id === m.team1Id);
-                const t2 = tournament.teams.find(t => t.id === m.team2Id);
-                return {
-                    "STT": idx + 1,
-                    "Giờ Thi Đấu": m.scheduledTime || 'Chưa xếp',
-                    "Sân Đấu": m.court || 'Chưa chọn sân',
-                    "Nội Dung": m.category || '',
-                    "Giai Đoạn": m.stage === 'GROUP' ? `Bảng ${m.group}` : m.roundName,
-                    "Đội 1": t1 ? t1.name : 'Chờ',
-                    "Tỷ Số 1": m.score1,
-                    "Tỷ Số 2": m.score2,
-                    "Đội 2": t2 ? t2.name : 'Chờ',
-                    "Trạng Thái": m.status === 'COMPLETED' ? 'Hoàn thành' : m.status === 'IN_PROGRESS' ? 'Đang đấu' : 'Chưa đấu'
-                };
-            });
-
-            const ws = XLSX.utils.json_to_sheet(schedData);
-            XLSX.utils.book_append_sheet(wb, ws, "Lich_Thi_Dau");
-            XLSX.writeFile(wb, `Lich_Thi_Dau_${(tournament.name || 'Pickleball').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-            showToast("Đã xuất file Excel lịch thi đấu thành công!", "success");
+            renderSchedule();
+            renderDashboard();
+            renderRefereePortal();
+            triggerCloudSync();
         }
 
-        function importScheduleFromExcel(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        function deleteMatch(matchId) {
+            const match = tournament.matches.find(m => m.id === matchId);
+            if (!match) return;
 
-            if (typeof XLSX === 'undefined') {
-                showToast("Thư viện SheetJS chưa sẵn sàng!", "error");
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                try {
-                    const data = new Uint8Array(evt.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames.find(s => s.toLowerCase().includes('lich') || s.toLowerCase().includes('dau') || s.toLowerCase().includes('schedule')) || workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    const json = XLSX.utils.sheet_to_json(sheet);
-
-                    let importedMatchesCount = 0;
-
-                    json.forEach((row, idx) => {
-                        const team1Name = row["Đội 1"] || row["Team 1"] || row["VĐV 1"] || row["Đội A"];
-                        const team2Name = row["Đội 2"] || row["Team 2"] || row["VĐV 2"] || row["Đội B"];
-
-                        if (team1Name && team2Name) {
-                            const cat = row["Nội Dung"] || row["Nội Dung Thi Đấu"] || row["Category"] || tournament.categories[0];
-                            if (!tournament.categories.includes(cat)) {
-                                tournament.categories.push(cat);
+            showConfirm('Xác nhận xóa trận đấu', 'Bạn có chắc chắn muốn xóa trận đấu này khỏi lịch thi đấu?', (confirmed) => {
+                if (confirmed) {
+                    if (match.court) {
+                        const courtObj = tournament.courts.find(c => c.id === match.court);
+                        if (courtObj) {
+                            const activeMatchesOnCourt = tournament.matches.filter(m => m.court === match.court && m.id !== matchId && m.status === 'IN_PROGRESS');
+                            if (activeMatchesOnCourt.length === 0) {
+                                courtObj.status = 'Rảnh';
                             }
-
-                            // Register Team 1 if missing
-                            let t1 = tournament.teams.find(t => t.name.toLowerCase() === String(team1Name).trim().toLowerCase() && t.category === cat);
-                            if (!t1) {
-                                t1 = {
-                                    id: `T${String(tournament.teams.length + 1).padStart(2, '0')}`,
-                                    name: String(team1Name).trim(),
-                                    player1: String(team1Name).split('&')[0] ? String(team1Name).split('&')[0].trim() : String(team1Name).trim(),
-                                    gender1: 'Nam',
-                                    club1: 'Tự do',
-                                    player2: String(team1Name).split('&')[1] ? String(team1Name).split('&')[1].trim() : '',
-                                    gender2: 'Nam',
-                                    club2: '',
-                                    category: cat
-                                };
-                                tournament.teams.push(t1);
-                            }
-
-                            // Register Team 2 if missing
-                            let t2 = tournament.teams.find(t => t.name.toLowerCase() === String(team2Name).trim().toLowerCase() && t.category === cat);
-                            if (!t2) {
-                                t2 = {
-                                    id: `T${String(tournament.teams.length + 1).padStart(2, '0')}`,
-                                    name: String(team2Name).trim(),
-                                    player1: String(team2Name).split('&')[0] ? String(team2Name).split('&')[0].trim() : String(team2Name).trim(),
-                                    gender1: 'Nam',
-                                    club1: 'Tự do',
-                                    player2: String(team2Name).split('&')[1] ? String(team2Name).split('&')[1].trim() : '',
-                                    gender2: 'Nam',
-                                    club2: '',
-                                    category: cat
-                                };
-                                tournament.teams.push(t2);
-                            }
-
-                            const schedTime = row["Giờ Thi Đấu"] || row["Giờ"] || row["Time"] || '08:00';
-                            const courtName = row["Sân Đấu"] || row["Sân"] || row["Court"] || 'Sân 1';
-                            const stageStr = row["Giai Đoạn"] || row["Vòng"] || row["Stage"] || 'Vòng Bảng';
-                            const score1 = Math.max(0, parseInt(row["Tỷ Số 1"] || row["Điểm 1"] || 0) || 0);
-                            const score2 = Math.max(0, parseInt(row["Tỷ Số 2"] || row["Điểm 2"] || 0) || 0);
-                            const statusStr = row["Trạng Thái"] || row["Status"] || ((score1 > 0 || score2 > 0) ? 'Hoàn thành' : 'PENDING');
-
-                            let isCompleted = String(statusStr).toLowerCase().includes('hoàn thành') || String(statusStr).toLowerCase().includes('done') || String(statusStr).toLowerCase().includes('completed');
-                            let winnerId = null;
-                            if (isCompleted || score1 > 0 || score2 > 0) {
-                                winnerId = score1 > score2 ? t1.id : (score2 > score1 ? t2.id : null);
-                            }
-
-                            let isGroup = String(stageStr).toLowerCase().includes('bảng');
-                            let groupLetter = isGroup ? (stageStr.split(' ').pop() || 'A') : 'A';
-                            let gKey = `${cat}_${groupLetter}`;
-
-                            if (isGroup) {
-                                if (!tournament.groups[gKey]) tournament.groups[gKey] = [];
-                                if (!tournament.groups[gKey].includes(t1.id)) tournament.groups[gKey].push(t1.id);
-                                if (!tournament.groups[gKey].includes(t2.id)) tournament.groups[gKey].push(t2.id);
-                            }
-
-                            let matchId = `M_${cat.replace(/\s+/g, '')}_IMP_${idx+1}`;
-
-                            let matchObj = {
-                                id: matchId,
-                                stage: isGroup ? 'GROUP' : 'KNOCKOUT',
-                                category: cat,
-                                group: isGroup ? groupLetter : null,
-                                groupKey: isGroup ? gKey : null,
-                                roundName: isGroup ? `Bảng ${groupLetter}` : stageStr,
-                                roundNum: isGroup ? null : 2,
-                                team1Id: t1.id,
-                                team2Id: t2.id,
-                                score1: score1,
-                                score2: score2,
-                                scheduledTime: String(schedTime),
-                                court: String(courtName),
-                                status: isCompleted ? 'COMPLETED' : ((score1 > 0 || score2 > 0) ? 'IN_PROGRESS' : 'PENDING'),
-                                winnerId: winnerId
-                            };
-
-                            tournament.matches.push(matchObj);
-
-                            if (isCompleted && !isGroup) {
-                                advanceKnockoutWinner(matchObj);
-                            }
-
-                            importedMatchesCount++;
                         }
-                    });
+                    }
 
-                    allTournamentsData[activeTournamentId] = tournament;
-                    window.tournament = tournament;
+                    tournament.matches = tournament.matches.filter(m => m.id !== matchId);
 
                     renderAllViews();
                     triggerCloudSync();
-                    showToast(`Đã nhập thành công ${importedMatchesCount} trận đấu vào Lịch, Bảng đấu, VĐV & đồng bộ Cloud!`, "success");
-                } catch (err) {
-                    console.error("Excel Schedule Import Error:", err);
-                    showToast("Lỗi khi đọc file Excel lịch thi đấu. Vui lòng kiểm tra lại định dạng file!", "error");
+                    showToast("Đã xóa trận đấu thành công!", "success");
                 }
-            };
-            reader.readAsArrayBuffer(file);
-            e.target.value = '';
+            });
         }
 
         function selectRefereeCourt(courtId) {
@@ -2595,7 +2451,7 @@
 
                 renderAllViews();
                 triggerCloudSync();
-                showToast(`Đã chọn trận: ${targetMatch.category || ''} (${targetMatch.stage === 'GROUP' ? 'Bảng ' + targetMatch.group : targetMatch.roundName}) cho ${courtId}`, "success");
+                showToast(`Đã đổi sang trận: ${targetMatch.category || ''} (${targetMatch.stage === 'GROUP' ? 'Bảng ' + targetMatch.group : targetMatch.roundName})`, "success");
             }
         }
 
@@ -2769,7 +2625,6 @@
 
             container.innerHTML = `
                 <div class="space-y-4">
-                    <!-- Mobile Sticky Score Callout Banner & Match Switcher -->
                     <div class="flex flex-col sm:flex-row items-center justify-between bg-slate-950 p-3 rounded-2xl border border-slate-800 gap-2">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
                             <div class="flex items-center gap-2">
@@ -3145,7 +3000,7 @@
             const badgeEl = document.getElementById('admin-role-badge');
             if (badgeEl) {
                 badgeEl.innerText = currRole;
-                badgeEl.className = `px-2 py-0.5 text-[10px] font-extrabold uppercase rounded ${
+                badgeEl.className = `px-2 py-0.5 text-[10px] font-extrabold uppercase bg-amber-500 text-slate-950 rounded ${
                     currRole === 'ADMIN' ? 'bg-amber-500 text-slate-950' :
                     currRole === 'SUB_ADMIN' ? 'bg-sky-500 text-slate-950' :
                     'bg-emerald-500 text-slate-950'
@@ -3233,19 +3088,12 @@
 
                     try {
                         localStorage.removeItem('pickleball_multi_tournaments_data');
+                        localStorage.removeItem('pickleball_tournament_data');
                     } catch (e) {}
 
-                    if (typeof window.saveToCloud === 'function') {
-                        await window.saveToCloud();
-                    }
-
-                    renderDashboard();
-                    renderPlayersList();
-                    renderGroups();
-                    renderBracket();
-                    renderSchedule();
-                    renderAdminPortal();
-                    showToast('Đã xóa sạch dữ liệu trên Database và đặt lại giải đấu thành công!', 'success');
+                    renderAllViews();
+                    triggerCloudSync(); // Trigger Cloud Sync here pushes the empty data state explicitly to Firebase
+                    showToast('Đã xóa sạch toàn bộ dữ liệu trên Database và đặt lại giải đấu thành công!', 'success');
                 }
             });
         }
@@ -3450,6 +3298,50 @@
             return { wb, fileName };
         }
 
+        function exportScheduleToExcel() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Thư viện SheetJS chưa tải xong!", "error");
+                return;
+            }
+
+            let stageFilter = document.getElementById('schedule-stage-filter') ? document.getElementById('schedule-stage-filter').value : 'ALL';
+            let catFilter = tournament.activeCategorySchedule || 'ALL';
+
+            let list = tournament.matches.filter(m => {
+                let matchesStage = stageFilter === 'ALL' || m.stage === stageFilter;
+                let matchesCat = catFilter === 'ALL' || m.category === catFilter;
+                return matchesStage && matchesCat;
+            });
+
+            if (list.length === 0) {
+                showToast("Không có trận đấu nào trong lịch để xuất file!", "error");
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const schedData = list.map((m, idx) => {
+                const t1 = tournament.teams.find(t => t.id === m.team1Id);
+                const t2 = tournament.teams.find(t => t.id === m.team2Id);
+                return {
+                    "STT": idx + 1,
+                    "Giờ Thi Đấu": m.scheduledTime || 'Chưa xếp',
+                    "Sân Đấu": m.court || 'Chưa chọn sân',
+                    "Nội Dung": m.category || '',
+                    "Giai Đoạn": m.stage === 'GROUP' ? `Bảng ${m.group}` : m.roundName,
+                    "Đội 1": t1 ? t1.name : 'Chờ',
+                    "Tỷ Số 1": m.score1,
+                    "Tỷ Số 2": m.score2,
+                    "Đội 2": t2 ? t2.name : 'Chờ',
+                    "Trạng Thái": m.status === 'COMPLETED' ? 'Hoàn thành' : m.status === 'IN_PROGRESS' ? 'Đang đấu' : 'Chưa đấu'
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(schedData);
+            XLSX.utils.book_append_sheet(wb, ws, "Lich_Thi_Dau");
+            XLSX.writeFile(wb, `Lich_Thi_Dau_${(tournament.name || 'Pickleball').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            showToast("Đã xuất file Excel lịch thi đấu thành công!", "success");
+        }
+
         function importFromExcel(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -3496,6 +3388,138 @@
                 } catch (err) {
                     console.error(err);
                     showToast("Có lỗi khi đọc file Excel!", "error");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
+        }
+
+        function importScheduleFromExcel(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (typeof XLSX === 'undefined') {
+                showToast("Thư viện SheetJS chưa sẵn sàng!", "error");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames.find(s => s.toLowerCase().includes('lich') || s.toLowerCase().includes('dau') || s.toLowerCase().includes('schedule')) || workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(sheet);
+
+                    let importedMatchesCount = 0;
+
+                    json.forEach((row, idx) => {
+                        const team1Name = row["Đội 1"] || row["Team 1"] || row["VĐV 1"] || row["Đội A"];
+                        const team2Name = row["Đội 2"] || row["Team 2"] || row["VĐV 2"] || row["Đội B"];
+
+                        if (team1Name && team2Name) {
+                            const cat = row["Nội Dung"] || row["Nội Dung Thi Đấu"] || row["Category"] || tournament.categories[0];
+                            if (!tournament.categories.includes(cat)) {
+                                tournament.categories.push(cat);
+                            }
+
+                            // Register Team 1 if missing
+                            let t1 = tournament.teams.find(t => t.name.toLowerCase() === String(team1Name).trim().toLowerCase() && t.category === cat);
+                            if (!t1) {
+                                t1 = {
+                                    id: `T${String(tournament.teams.length + 1).padStart(2, '0')}`,
+                                    name: String(team1Name).trim(),
+                                    player1: String(team1Name).split('&')[0] ? String(team1Name).split('&')[0].trim() : String(team1Name).trim(),
+                                    gender1: 'Nam',
+                                    club1: 'Tự do',
+                                    player2: String(team1Name).split('&')[1] ? String(team1Name).split('&')[1].trim() : '',
+                                    gender2: 'Nam',
+                                    club2: '',
+                                    category: cat
+                                };
+                                tournament.teams.push(t1);
+                            }
+
+                            // Register Team 2 if missing
+                            let t2 = tournament.teams.find(t => t.name.toLowerCase() === String(team2Name).trim().toLowerCase() && t.category === cat);
+                            if (!t2) {
+                                t2 = {
+                                    id: `T${String(tournament.teams.length + 1).padStart(2, '0')}`,
+                                    name: String(team2Name).trim(),
+                                    player1: String(team2Name).split('&')[0] ? String(team2Name).split('&')[0].trim() : String(team2Name).trim(),
+                                    gender1: 'Nam',
+                                    club1: 'Tự do',
+                                    player2: String(team2Name).split('&')[1] ? String(team2Name).split('&')[1].trim() : '',
+                                    gender2: 'Nam',
+                                    club2: '',
+                                    category: cat
+                                };
+                                tournament.teams.push(t2);
+                            }
+
+                            const schedTime = row["Giờ Thi Đấu"] || row["Giờ"] || row["Time"] || '08:00';
+                            const courtName = row["Sân Đấu"] || row["Sân"] || row["Court"] || 'Sân 1';
+                            const stageStr = row["Giai Đoạn"] || row["Vòng"] || row["Stage"] || 'Vòng Bảng';
+                            const score1 = Math.max(0, parseInt(row["Tỷ Số 1"] || row["Điểm 1"] || 0) || 0);
+                            const score2 = Math.max(0, parseInt(row["Tỷ Số 2"] || row["Điểm 2"] || 0) || 0);
+                            const statusStr = row["Trạng Thái"] || row["Status"] || ((score1 > 0 || score2 > 0) ? 'Hoàn thành' : 'PENDING');
+
+                            let isCompleted = String(statusStr).toLowerCase().includes('hoàn thành') || String(statusStr).toLowerCase().includes('done') || String(statusStr).toLowerCase().includes('completed');
+                            let winnerId = null;
+                            if (isCompleted || score1 > 0 || score2 > 0) {
+                                winnerId = score1 > score2 ? t1.id : (score2 > score1 ? t2.id : null);
+                            }
+
+                            let isGroup = String(stageStr).toLowerCase().includes('bảng');
+                            let groupLetter = isGroup ? (stageStr.split(' ').pop() || 'A') : 'A';
+                            let gKey = `${cat}_${groupLetter}`;
+
+                            if (isGroup) {
+                                if (!tournament.groups[gKey]) tournament.groups[gKey] = [];
+                                if (!tournament.groups[gKey].includes(t1.id)) tournament.groups[gKey].push(t1.id);
+                                if (!tournament.groups[gKey].includes(t2.id)) tournament.groups[gKey].push(t2.id);
+                            }
+
+                            let matchId = `M_${cat.replace(/\s+/g, '')}_IMP_${idx+1}`;
+
+                            let matchObj = {
+                                id: matchId,
+                                stage: isGroup ? 'GROUP' : 'KNOCKOUT',
+                                category: cat,
+                                group: isGroup ? groupLetter : null,
+                                groupKey: isGroup ? gKey : null,
+                                roundName: isGroup ? `Bảng ${groupLetter}` : stageStr,
+                                roundNum: isGroup ? null : 2,
+                                team1Id: t1.id,
+                                team2Id: t2.id,
+                                score1: score1,
+                                score2: score2,
+                                scheduledTime: String(schedTime),
+                                court: String(courtName),
+                                status: isCompleted ? 'COMPLETED' : ((score1 > 0 || score2 > 0) ? 'IN_PROGRESS' : 'PENDING'),
+                                winnerId: winnerId
+                            };
+
+                            tournament.matches.push(matchObj);
+
+                            if (isCompleted && !isGroup) {
+                                advanceKnockoutWinner(matchObj);
+                            }
+
+                            importedMatchesCount++;
+                        }
+                    });
+
+                    allTournamentsData[activeTournamentId] = tournament;
+                    window.tournament = tournament;
+
+                    renderAllViews();
+                    triggerCloudSync();
+                    showToast(`Đã nhập thành công ${importedMatchesCount} trận đấu vào Lịch, Bảng đấu, VĐV & đồng bộ Cloud!`, "success");
+                } catch (err) {
+                    console.error("Excel Schedule Import Error:", err);
+                    showToast("Lỗi khi đọc file Excel lịch thi đấu. Vui lòng kiểm tra lại định dạng file!", "error");
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -3642,6 +3666,7 @@
         window.openCoinTossModal = openCoinTossModal;
         window.closeCoinTossModal = closeCoinTossModal;
         window.performCoinFlip = performCoinFlip;
+        window.deleteMatch = deleteMatch;
 
         window.onload = function() {
             updateCategoryDropdownOptions();
