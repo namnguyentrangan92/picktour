@@ -2542,6 +2542,47 @@
             renderRefereePortal();
         }
 
+        function refereeSelectMatch(matchId) {
+            if (!matchId) return;
+            const courtId = tournament.activeRefereeCourt;
+            if (!courtId) {
+                showToast("Vui lòng chọn Sân trước!", "error");
+                return;
+            }
+
+            const currentActive = tournament.matches.find(m => m.court === courtId && m.status === 'IN_PROGRESS');
+            if (currentActive && currentActive.id !== matchId) {
+                currentActive.status = 'PENDING';
+            }
+
+            const targetMatch = tournament.matches.find(m => m.id === matchId);
+            if (targetMatch) {
+                if (targetMatch.court && targetMatch.court !== courtId) {
+                    const oldCourt = tournament.courts.find(c => c.id === targetMatch.court);
+                    if (oldCourt) {
+                        const otherMatchesOnOld = tournament.matches.filter(m => m.court === targetMatch.court && m.id !== matchId && m.status === 'IN_PROGRESS');
+                        if (otherMatchesOnOld.length === 0) oldCourt.status = 'Rảnh';
+                    }
+                }
+
+                targetMatch.court = courtId;
+                targetMatch.status = 'IN_PROGRESS';
+
+                const courtObj = tournament.courts.find(c => c.id === courtId);
+                if (courtObj) courtObj.status = 'Đang đấu';
+
+                tournament.refereeState.serverTeam = 1;
+                tournament.refereeState.serverNum = 2;
+                tournament.refereeState.timeouts1 = 2;
+                tournament.refereeState.timeouts2 = 2;
+                tournament.refereeState.historyStack = [];
+
+                renderAllViews();
+                triggerCloudSync();
+                showToast(`Đã chọn trận: ${targetMatch.category || ''} (${targetMatch.stage === 'GROUP' ? 'Bảng ' + targetMatch.group : targetMatch.roundName}) cho ${courtId}`, "success");
+            }
+        }
+
         function refereeAddPoint(teamNum) {
             const courtId = tournament.activeRefereeCourt;
             const activeMatch = tournament.matches.find(m => m.court === courtId && m.status !== 'COMPLETED');
@@ -2657,18 +2698,42 @@
 
             const courtId = tournament.activeRefereeCourt;
             if (!courtId) {
-                container.innerHTML = `<div class="text-slate-500 text-sm font-bold">Vui lòng chọn Sân đấu ở góc trên để bắt đầu điều khiển tỷ số trực tiếp.</div>`;
+                container.innerHTML = `<div class="text-slate-500 text-sm font-bold py-6">Vui lòng chọn Sân đấu ở góc trên để bắt đầu điều khiển tỷ số trực tiếp.</div>`;
                 return;
             }
+
+            let pendingMatches = tournament.matches.filter(m => m.status !== 'COMPLETED');
+            let matchOptionsHtml = `<option value="">-- Chọn / Đổi Trận Đấu Khác Lên Sân --</option>`;
+            pendingMatches.forEach(m => {
+                const t1 = tournament.teams.find(t => t.id === m.team1Id);
+                const t2 = tournament.teams.find(t => t.id === m.team2Id);
+                const name1 = t1 ? t1.name : 'Chờ';
+                const name2 = t2 ? t2.name : 'Chờ';
+                const courtLabel = m.court ? ` (${m.court})` : ' (Chưa xếp)';
+                const timeLabel = m.scheduledTime ? ` [${m.scheduledTime}]` : '';
+                const stageLabel = m.stage === 'GROUP' ? `Bảng ${m.group}` : m.roundName;
+
+                matchOptionsHtml += `
+                    <option value="${m.id}">
+                        ${timeLabel} ${m.category} - ${stageLabel}: ${name1} vs ${name2}${courtLabel}
+                    </option>
+                `;
+            });
 
             const activeMatch = tournament.matches.find(m => m.court === courtId && m.status !== 'COMPLETED');
 
             if (!activeMatch) {
                 container.innerHTML = `
-                    <div class="p-8 space-y-4">
-                        <i class="fa-solid fa-court-sport text-4xl text-slate-600"></i>
-                        <div class="text-slate-300 font-bold text-base">Hiện không có trận đấu nào đang diễn ra tại <b>${courtId}</b></div>
-                        <p class="text-xs text-slate-500">Vui lòng sang tab "Lịch Trận & Tỷ Số" để chỉ định trận đấu vào ${courtId}.</p>
+                    <div class="p-6 sm:p-8 space-y-4 text-center">
+                        <i class="fa-solid fa-court-sport text-4xl text-emerald-400"></i>
+                        <div class="text-slate-300 font-bold text-base">Hiện chưa có trận đấu nào đang diễn ra tại <b>${courtId}</b></div>
+                        <p class="text-xs text-slate-400 max-w-md mx-auto">VĐV trận hiện tại chưa đến hoặc muốn đẩy lịch thi đấu sớm? Hãy chọn một trận đấu bên dưới để chỉ định vào <b>${courtId}</b> và bắt đầu ngay.</p>
+                        
+                        <div class="max-w-md mx-auto pt-2">
+                            <select onchange="refereeSelectMatch(this.value)" class="w-full p-3 rounded-xl bg-slate-800 border-2 border-emerald-500 text-emerald-300 font-bold text-xs focus:outline-none focus:border-amber-400 cursor-pointer">
+                                ${matchOptionsHtml}
+                            </select>
+                        </div>
                     </div>
                 `;
                 return;
@@ -2688,11 +2753,17 @@
 
             container.innerHTML = `
                 <div class="space-y-4">
-                    <!-- Mobile Sticky Score Callout Banner -->
+                    <!-- Mobile Sticky Score Callout Banner & Match Switcher -->
                     <div class="flex flex-col sm:flex-row items-center justify-between bg-slate-950 p-3 rounded-2xl border border-slate-800 gap-2">
-                        <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 font-black border border-emerald-700 text-xs">${courtId}</span>
-                            <span class="text-xs font-bold text-slate-300">${activeMatch.category || ''} - ${activeMatch.stage === 'GROUP' ? 'Bảng ' + activeMatch.group : activeMatch.roundName}</span>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 font-black border border-emerald-700 text-xs whitespace-nowrap">${courtId}</span>
+                                <span class="text-xs font-bold text-slate-300 truncate max-w-[180px] sm:max-w-none">${activeMatch.category || ''} - ${activeMatch.stage === 'GROUP' ? 'Bảng ' + activeMatch.group : activeMatch.roundName}</span>
+                            </div>
+                            
+                            <select onchange="refereeSelectMatch(this.value)" class="mt-1 sm:mt-0 py-1 px-2.5 rounded-lg bg-slate-900 border border-slate-700 text-pickle-400 text-xs font-bold focus:outline-none focus:border-pickle-500 max-w-[260px] truncate cursor-pointer" title="Đổi sang trận đấu khác nếu VĐV chưa tới hoặc đẩy lịch lên sớm">
+                                ${matchOptionsHtml}
+                            </select>
                         </div>
                         
                         <div class="px-3.5 py-1.5 rounded-xl bg-amber-950/80 border border-amber-500/50 text-amber-400 font-mono font-black text-sm flex items-center justify-center gap-2 w-full sm:w-auto">
@@ -3499,6 +3570,7 @@
         window.generateKnockoutFromGroups = generateKnockoutFromGroups;
         window.autoScheduleMatches = autoScheduleMatches;
         window.selectRefereeCourt = selectRefereeCourt;
+        window.refereeSelectMatch = refereeSelectMatch;
         window.refereeAddPoint = refereeAddPoint;
         window.refereeSideOut = refereeSideOut;
         window.refereeToggleServerNum = refereeToggleServerNum;
