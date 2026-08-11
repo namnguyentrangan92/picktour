@@ -121,7 +121,7 @@
                     <div>
                         <div class="flex items-center space-x-2">
                             <span class="px-2.5 py-0.5 text-[11px] font-extrabold bg-pickle-950 text-pickle-400 border border-pickle-500/30 rounded-md">VIETNAM PICKLEBALL TOUR 2026</span>
-                            <span id="cloud-sync-status" class="text-xs text-slate-400 font-medium"><i class="fa-solid fa-circle text-emerald-400 text-[8px] mr-1"></i>Đồng Bộ Trực Tuyến</span>
+                            <span id="cloud-sync-status" class="text-xs text-slate-400 font-medium"><i class="fa-solid fa-circle text-emerald-400 text-[8px] mr-1"></i>Đã Đồng Bộ Cloud</span>
                         </div>
                         <h1 class="text-xl sm:text-2xl font-black tracking-tight text-white uppercase">Giải Vô Địch Pickleball Mở Rộng</h1>
                     </div>
@@ -183,7 +183,7 @@
                             <i class="fa-solid fa-trophy text-amber-400"></i> GIẢI THƯỞNG TỔNG 50.000.000 VNĐ
                         </div>
                         <h2 class="text-2xl sm:text-4xl font-black tracking-tight text-white">Trung Tâm Điều Hành Giải Pickleball</h2>
-                        <p class="text-slate-300 text-sm max-w-2xl">Điều hành giải thi đấu chuyên nghiệp: Tự động chia bảng, xếp lịch theo Giờ + Sân, quy tắc nghiêm ngặt <b>Nghỉ đấu (Không đấu &gt; 2 trận liên tiếp)</b>, Bảng Trọng Tài điều khiển trực tiếp.</p>
+                        <p class="text-slate-300 text-sm max-w-2xl">Điều hành giải thi đấu chuyên nghiệp: Tự động chia bảng, xếp lịch Ca Sáng / Ca Chiều theo Giờ + Sân, quy tắc nghiêm ngặt <b>Nghỉ đấu (Không đấu &gt; 2 trận liên tiếp)</b>, Bảng Trọng Tài điều khiển trực tiếp.</p>
                     </div>
                     <div class="flex gap-3">
                         <button onclick="switchTab('referee')" class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm transition shadow-lg shadow-emerald-600/30 flex items-center gap-2">
@@ -348,6 +348,7 @@
                 </div>
             </div>
 
+            <!-- Category Filter Pills -->
             <div id="group-category-pills" class="flex items-center gap-2 overflow-x-auto pb-1 text-xs"></div>
 
             <div id="groups-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
@@ -866,10 +867,9 @@
                         if (docSnap.exists()) {
                             const cloudData = docSnap.data();
                             if (cloudData && cloudData.tournament) {
-                                window.tournament = cloudData.tournament;
-                                if (typeof window.renderAllViews === 'function') {
-                                    window.renderAllViews();
-                                }
+                                window.setTournamentData(cloudData.tournament);
+                                const statusEl = document.getElementById('cloud-sync-status');
+                                if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle text-emerald-400 text-[8px] mr-1"></i>Đã Đồng Bộ Cloud';
                             }
                         }
                     }, (err) => console.error("Firestore sync error:", err));
@@ -966,12 +966,29 @@
             }
         } catch (e) {}
 
+        window.setTournamentData = function(newData) {
+            if (!newData) return;
+            tournament = newData;
+            window.tournament = tournament;
+            updateRoleHeaderUI();
+            if (typeof window.renderAllViews === 'function') {
+                window.renderAllViews();
+            }
+        };
+
         function triggerCloudSync() {
+            window.tournament = tournament;
             try {
                 localStorage.setItem('pickleball_tournament_data', JSON.stringify(tournament));
             } catch (e) {}
+            const statusEl = document.getElementById('cloud-sync-status');
+            if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-amber-400 text-[8px] mr-1"></i>Đang Lưu Cloud...';
             if (typeof window.saveToCloud === 'function') {
-                window.saveToCloud();
+                window.saveToCloud().then(() => {
+                    if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle text-emerald-400 text-[8px] mr-1"></i>Đã Đồng Bộ Cloud';
+                }).catch(() => {
+                    if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-circle text-red-400 text-[8px] mr-1"></i>Lỗi Cloud';
+                });
             }
         }
 
@@ -2211,11 +2228,13 @@
             }
 
             renderRefereePortal();
+            triggerCloudSync();
         }
 
         function refereeToggleServerNum() {
             tournament.refereeState.serverNum = tournament.refereeState.serverNum === 1 ? 2 : 1;
             renderRefereePortal();
+            triggerCloudSync();
         }
 
         function refereeUndo() {
@@ -2264,6 +2283,7 @@
             }, 1000);
 
             renderRefereePortal();
+            triggerCloudSync();
         }
 
         function renderRefereePortal() {
