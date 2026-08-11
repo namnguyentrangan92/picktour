@@ -2584,15 +2584,6 @@
             const matchedUser = usersList.find(u => u.user.toLowerCase() === userIn.toLowerCase() && u.pass === passIn);
 
             if (matchedUser) {
-                if (matchedUser.role === 'REFEREE') {
-                    showToast("Tài khoản Trọng tài không được phép vào Trang Quản Trị!", "error");
-                    if (errEl) {
-                        errEl.classList.remove('hidden');
-                        errEl.innerText = "Tài khoản Trọng tài không được phép đăng nhập vào trang Quản Trị!";
-                    }
-                    return;
-                }
-
                 tournament.admin.isLoggedIn = true;
                 tournament.admin.username = matchedUser.user;
                 tournament.admin.currentRole = matchedUser.role;
@@ -2602,7 +2593,12 @@
                 renderAdminPortal();
 
                 showToast(`Đăng nhập thành công với quyền ${matchedUser.role}!`, "success");
-                switchTab('admin');
+
+                if (matchedUser.role === 'REFEREE') {
+                    switchTab('referee');
+                } else {
+                    switchTab('admin');
+                }
             } else {
                 if (errEl) {
                     errEl.classList.remove('hidden');
